@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <include
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/appBar"
+        layout="@layout/app_bar" />
+
+    <TextView
+        android:id="@+id/title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+       android:layout_gravity="center_horizontal"
+        android:paddingBottom="16dp"
+        android:paddingLeft="16dp"
+        android:paddingTop="16dp"
+        android:text="Large Text"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:textSize="40dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="285dp"
+        android:orientation="horizontal">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+            <ImageView
+                android:id="@+id/poster"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:scaleType="fitCenter"
+
+                android:src="@drawable/placeholder" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/year"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toLeftOf="@id/poster"
+                android:text="Movie Title"
+                android:textSize="28dp"
+                android:paddingTop="32dp"
+                android:paddingBottom="16dp"
+                android:paddingLeft="16dp"/>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="48dp"
+                android:background="@color/colorButton"
+                android:layout_marginLeft="16dp"
+                android:text="Favourite"
+                android:id="@+id/button" />
+
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.3">
+        <TextView
+            android:id="@+id/detail2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/poster" />
+    </LinearLayout>
+
+</LinearLayout>

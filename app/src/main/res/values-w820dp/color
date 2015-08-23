@@ -1,0 +1,10 @@
+<resources>
+    <color name="colorPrimary">#607D8B</color>
+    <color name="colorPrimaryDark">#263238</color>
+    <color name="colorAccent1">#FF9800</color>
+    <color name="colorAccent2">#795548</color>
+    <color name="colorButton">#4CAF50</color>
+    <color name="colorButtonBold">#F44336</color>
+    <color name="portfolio_titleTextColor">#FFFFFF</color>
+    <color name="portfolio_buttonBackground">#607D8B</color>
+</resources>

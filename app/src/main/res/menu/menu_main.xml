@@ -1,0 +1,16 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="portfolio.nanodegree.android.ntippa.project1.MainActivity">
+    <item
+        android:id="@+id/sort_popularity"
+        android:orderInCategory="100"
+        android:title="@string/sort_order_popular"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/sort_rating"
+        android:orderInCategory="99"
+        android:title="@string/sort_rating"
+        app:showAsAction="never" />
+</menu>
