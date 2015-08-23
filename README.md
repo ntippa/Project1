@@ -1,4 +1,4 @@
-# Popular Movies App: stag1
+# Popular Movies App: stage1
 
 
 
