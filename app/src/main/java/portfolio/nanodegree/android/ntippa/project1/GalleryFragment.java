@@ -71,6 +71,10 @@ public class GalleryFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        if(savedInstanceState != null){
+            Log.d(TAG," fetching items from savedInstanceState");
+            items = savedInstanceState.getParcelableArrayList("GALLERY_ITEMS"); // avoid redo while config changes
+        }
         setHasOptionsMenu(true);
         setRetainInstance(true);
     }
@@ -152,6 +156,13 @@ public class GalleryFragment extends Fragment {
     public void onStart() {
         super.onStart();
         fetchMoviesJSon();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        outState.putParcelableArrayList("GALLERY_ITEMS", items);
+        Log.d(TAG,"saving the Arraylist to the Bundle");
+        super.onSaveInstanceState(outState);
     }
 
     private void fetchMoviesJSon() {
