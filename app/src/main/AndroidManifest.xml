@@ -3,6 +3,7 @@
     package="portfolio.nanodegree.android.ntippa.project1" >
 
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:allowBackup="true"
@@ -24,6 +25,19 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="portfolio.nanodegree.android.ntippa.project1.MainActivity" />
             </activity>
+        <provider
+            android:authorities="portfolio.nanodegree.android.ntippa.project1"
+            android:name="portfolio.nanodegree.android.ntippa.project1.data.MovieProvider"
+            android:exported="true"
+            android:permission="ntippa.myapp.LICENSE_TO_KILL"
+            />
     </application>
+
+    <permission
+        android:name="ntippa.myapp.LICENSE_TO_KILL"
+        android:protectionLevel="dangerous"
+        android:label="Licensed to kill">
+
+    </permission>
 
 </manifest>

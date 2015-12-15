@@ -8,16 +8,20 @@ import android.os.Parcelable;
  * dt: 7/14/2015.
  * last edit:08/23/15
  * represents each Gallery item
+ *
+ * 11/22: changed rating, popularity to double
+ *      :change Id to int;
  */
 public class GalleryItem implements Parcelable{
 
     private String mTitle;
-    private String mId;
+    private int mId;//todo: is this movie_id??
     private String mPosterUrl;
     private String mDescription;
-    private String mRating;
-    private String mPopularity;
-    private String mReleaseDate;
+    private double mRating;
+    private double mPopularity;
+    private String mReleaseDate;//todo: do we leave date as string??
+    private int mFavourite;
 
     public GalleryItem(){
         //todo:maybe not public
@@ -32,11 +36,11 @@ public class GalleryItem implements Parcelable{
         this.mTitle = mTitle;
     }
 
-    public String getmRating() {
+    public double getmRating() {
         return mRating;
     }
 
-    public void setmRating(String mRating) {
+    public void setmRating(double mRating) {
         this.mRating = mRating;
     }
 
@@ -56,19 +60,19 @@ public class GalleryItem implements Parcelable{
         this.mPosterUrl = mPosterUrl;
     }
 
-    public String getmId() {
+    public int getId() {
         return mId;
     }
 
-    public void setmId(String mId) {
+    public void setId(int mId) {
         this.mId = mId;
     }
 
-    public String getmPopularity() {
+    public double getmPopularity() {
         return mPopularity;
     }
 
-    public void setmPopularity(String mPopularity) {
+    public void setmPopularity(double mPopularity) {
         this.mPopularity = mPopularity;
     }
 
@@ -78,6 +82,14 @@ public class GalleryItem implements Parcelable{
 
     public void setmReleaseDate(String mReleaseDate) {
         this.mReleaseDate = mReleaseDate;
+    }
+
+    public int getFavourite() {
+        return mFavourite;
+    }
+
+    public void setFavourite(int mFavourite) {
+        this.mFavourite = mFavourite;
     }
 
     public String toString(){
@@ -92,23 +104,25 @@ public class GalleryItem implements Parcelable{
     @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(mTitle);
-        dest.writeString(mId);
+        dest.writeInt(mId);
         dest.writeString(mPosterUrl);
         dest.writeString(mDescription);
-        dest.writeString(mRating);
-        dest.writeString(mPopularity);
+        dest.writeDouble(mRating);//.writeString(mRating);
+        dest.writeDouble(mPopularity);//.writeString(mPopularity);
         dest.writeString(mReleaseDate);
+        dest.writeInt(mFavourite);
 
     }
 
     protected GalleryItem(Parcel in){
         mTitle = in.readString();
-        mId = in.readString();
+        mId = in.readInt();//.readString();
         mPosterUrl = in.readString();
         mDescription= in.readString();
-        mRating = in.readString();
-        mPopularity = in.readString();
+        mRating = in.readDouble();//.readString();
+        mPopularity = in.readDouble();//.readString();
         mReleaseDate = in.readString();
+        mFavourite = in.readInt();
 
     }
 

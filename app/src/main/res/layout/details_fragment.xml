@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/detailfragmentContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
+
 
     <include
         xmlns:android="http://schemas.android.com/apk/res/android"
         android:id="@+id/appBar"
         layout="@layout/app_bar" />
 
+    <!-- MOVIE TITLE-->
     <TextView
         android:id="@+id/title"
         android:layout_width="match_parent"
@@ -21,9 +29,11 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:textSize="40dp" />
 
+    <!-- MOVIE POSTER->
+    <!-TODO: CHANGE LAYOUT HIEGHT IN TERMS OF WEIGHTS-->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="285dp"
+        android:layout_height="200dp"
         android:orientation="horizontal">
 
         <LinearLayout
@@ -40,6 +50,8 @@
 
                 android:src="@drawable/placeholder" />
         </LinearLayout>
+
+        <!-- YEAR, FAVOURITE BUTTON-->
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -64,21 +76,114 @@
                 android:background="@color/colorButton"
                 android:layout_marginLeft="16dp"
                 android:text="Favourite"
-                android:id="@+id/button" />
+                android:id="@+id/favourite_button" />
 
 
         </LinearLayout>
     </LinearLayout>
 
+    <!-- DESCRIPTION-->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="0.3">
-        <TextView
-            android:id="@+id/detail2"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/poster" />
+        android:layout_height="100dp">
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/detail2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/poster" />
+
+        </ScrollView>
+
+
     </LinearLayout>
 
+<!--REVIEWS-->
+<LinearLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <ListView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/reviewsListView"
+        android:layout_weight="0.5">
+    </ListView>
+
+    <ListView
+        android:id="@+id/trailersListView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.5"></ListView>
+
 </LinearLayout>
+
+    <!--<LinearLayout-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="100dp"-->
+        <!--android:orientation="vertical">-->
+
+        <!--<TextView-->
+            <!--android:id="@+id/reviewsTitle"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:layout_weight="0.25"-->
+            <!--android:text="Reviews"-->
+            <!--android:textSize="40dp" />-->
+
+        <!--<ScrollView-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:id="@+id/scrollView"-->
+            <!--android:layout_weight="0.85">-->
+         <!--<TextView-->
+            <!--android:id="@+id/reviews"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:text="Review here"/>-->
+            <!--</ScrollView>-->
+
+
+    <!--</LinearLayout>-->
+
+    <!-- TRAILERS-->
+
+    <!--<LinearLayout-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="100dp"-->
+        <!--android:orientation="horizontal">-->
+
+        <!--&lt;!&ndash;<TextView&ndash;&gt;-->
+            <!--&lt;!&ndash;android:id="@+id/trailersTitle"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:layout_width="match_parent"&ndash;&gt;-->
+            <!--&lt;!&ndash;android:layout_height="wrap_content"&ndash;&gt;-->
+
+            <!--&lt;!&ndash;android:text="Trailers" />&ndash;&gt;-->
+
+        <!--<ImageButton-->
+            <!--android:layout_width="wrap_content"-->
+            <!--android:layout_height="24dp"-->
+            <!--android:id="@+id/trailerButton"-->
+            <!--android:layout_weight="0.40"-->
+            <!--/>-->
+
+
+            <!--<TextView-->
+                <!--android:id="@+id/trailersText"-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:layout_weight="0.60"-->
+                <!--android:text="URLs here" />-->
+
+
+    <!--</LinearLayout>-->
+
+ </LinearLayout>
+</ScrollView>
+
+
+
