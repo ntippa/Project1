@@ -38,7 +38,7 @@ public class MoviesFetcher {
     private static final String ENDPOINT = "http://api.themoviedb.org/3/discover/movie?";
     private static final String MOVIE_METADATA_ENDPOINT = "http://api.themoviedb.org/3/movie";
 
-    private static final String API_KEY = "0f4fa69552a469f69fd2ded5676d0c4e";//empty string on purpose
+    private static final String API_KEY = "";//empty string on purpose
     private static final String SORT_ORDER = "popularity.desc";
     private static final String NUM_OF_PAGES = "1";
     private static final int FAVOURITE_DEFAULT = 0;// means not a favourite
