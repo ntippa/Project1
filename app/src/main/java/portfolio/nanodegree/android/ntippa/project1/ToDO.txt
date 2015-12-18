@@ -4,3 +4,11 @@ Fix:
 
 cleanup
 Utility class
+
+Main page
+Movies list can be from a content provider.
+"Refresh" will get the latest from TheMovieDB
+
+details can be queried, for now.Dont need to persist them
+
+favourites can have a content provider

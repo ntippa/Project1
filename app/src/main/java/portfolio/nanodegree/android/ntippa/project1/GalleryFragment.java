@@ -69,11 +69,13 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
 
     public interface Callbacks {
 
-        void onGalleryItemSelected(GalleryItem item);
+        void onGalleryItemSelected(GalleryItem item);//
     }
     GridView mGridView;
 
     ArrayList<GalleryItem> items;
+    Cursor cursor;
+    boolean isNetworkAvailable;
 
     private GalleryAdapter mAdapter;
 
@@ -151,30 +153,39 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
         mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                Cursor cursor = (Cursor) parent.getItemAtPosition(position);
+                try{
+                    Cursor cursor = (Cursor) parent.getItemAtPosition(position);
 
-                if(cursor != null){
-                    Toast.makeText(getActivity(),"Clicked Movie ID:" + cursor.getInt(GalleryFragment.COL_MOVIE_ID) + "Movie Title" + cursor.getString(GalleryFragment.COL_MOVIE_TITLE), Toast.LENGTH_SHORT).show();
-                    GalleryItem item = new GalleryItem();
-                Log.d(TAG,"_ID" + cursor.getInt(GalleryFragment.COL_ID));
-                item.setId(cursor.getInt(GalleryFragment.COL_MOVIE_ID));
-                item.setmTitle(cursor.getString(GalleryFragment.COL_MOVIE_TITLE));
-                item.setmDescription(cursor.getString(GalleryFragment.COL_MOVIE_DESC));
-                item.setmPosterUrl(cursor.getString(GalleryFragment.COL_MOVIE_POSTER_URL));
-                item.setmPopularity(cursor.getDouble(GalleryFragment.COL_MOVIE_POPULARITY));
-                item.setmRating(cursor.getDouble(GalleryFragment.COL_MOVIE_RATING));
+                    if(cursor != null){
+                        Toast.makeText(getActivity(),"TITLE::" + cursor.getString(GalleryFragment.COL_MOVIE_TITLE) + "RATING::" + cursor.getString(GalleryFragment.COL_MOVIE_RATING), Toast.LENGTH_SHORT).show();
+                        GalleryItem item = new GalleryItem();
+                        Log.d(TAG,"_ID" + cursor.getInt(GalleryFragment.COL_ID));
+                        item.setId(cursor.getInt(GalleryFragment.COL_MOVIE_ID));
+                        item.setmTitle(cursor.getString(GalleryFragment.COL_MOVIE_TITLE));
+                        item.setmDescription(cursor.getString(GalleryFragment.COL_MOVIE_DESC));
+                        item.setmPosterUrl(cursor.getString(GalleryFragment.COL_MOVIE_POSTER_URL));
+                        item.setmPopularity(cursor.getDouble(GalleryFragment.COL_MOVIE_POPULARITY));
+                        item.setmRating(cursor.getDouble(GalleryFragment.COL_MOVIE_RATING));
 
-                String release_date = new Date(cursor.getLong(GalleryFragment.COL_MOVIE_RELEASE_DATE)).toString();
-                item.setmReleaseDate(release_date);
+                        String release_date = new Date(cursor.getLong(GalleryFragment.COL_MOVIE_RELEASE_DATE)).toString();
+                        item.setmReleaseDate(release_date);
 
 //               Intent movieDetailsIntent = new Intent(getActivity(),DetailsActivity.class);
 //               movieDetailsIntent.putExtra("MOVIE_ITEM",item);
 //               getActivity().startActivity(movieDetailsIntent);
 
-                    mCallbacks.onGalleryItemSelected(item);
+                        mCallbacks.onGalleryItemSelected(item);
+                    }
+                }catch(Exception e){
+                    Log.d(TAG,"Exception fetcing cursor data onItemClick");
+                    e.printStackTrace();
+                }finally {
+                    if(cursor != null)
+                        cursor.close();//todo: will this be called once completely done with the cursor??
                 }
 
-                cursor.close();
+
+               // cursor.close();
             }
         });
 
@@ -194,56 +205,110 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
         Log.d(TAG,"onOptionsItemSelected");
         switch(item.getItemId()){
             case R.id.action_refresh:
-                fetchMoviesJSon();
-                getLoaderManager().initLoader(GALLERY_ITEMS_LOADER, null, this);
-                Log.d(TAG,"Cursor Loader intialised");
-                return true;
+                //todo: if network available, fetch movies over net
+                //todo: else fetch movies from db and prompt user , no new updates yet.Check back later
+              isNetworkAvailable = checkNetwork();
+                if(isNetworkAvailable){
+                    Log.d(TAG,"Network available for REFresh");
+                    fetchMoviesJSon();
+                    getLoaderManager().initLoader(GALLERY_ITEMS_LOADER, null, this);
+                    Log.d(TAG,"Cursor Loader intialised");
+                }else{
+                    Log.d(TAG," No network available for Refresh.");
+                }
+
+            return true;
             case R.id.sort_popularity:
-                //todo:sort the items by popularity
-                if(items.size() > 0){//chk that there r items indeed!!
-                    Log.d(TAG," sorting by Popularity");
+                //todo:should Up button retain the sort.How??
+                cursor = getActivity().getContentResolver().query(MoviesContract.Movies.CONTENT_URI,
+                        MOVIES_PROJECTION,
+                        null,
+                        null,
+                        MoviesContract.Movies.COLUMN_POPULARITY + " DESC");
 
-                    Collections.sort(items, new Comparator<GalleryItem>() {
-                        @Override
-                        public int compare(GalleryItem lhs, GalleryItem rhs) {
-                            if(rhs.getmPopularity() <  lhs.getmPopularity()) return -1 ;
-                            if(rhs.getmPopularity() == lhs.getmPopularity()) return 0 ;
-                            return 1;
-                        }
-                    });
-
-                    Log.d(TAG,"Done sorting");
-//          todo:          mGridView.setAdapter(new GalleryAdapter(getActivity(), items,0));//todo: do we need new instance??
-                    Log.d(TAG,"Set Adapter after sorting");
-
-                }else{
-                    Log.d(TAG,"Unable to sort by popularity");
-                    Toast.makeText(getActivity(),"Unable to process request",Toast.LENGTH_SHORT).show();//maybe throw exception or better way of handling this
+                if(cursor.getCount() == 0){//if not items in db, fetch from internet.
+                    //todo: for now prompt user to refresh. Next iteration, fetch movies over net;
+                    Toast.makeText(getActivity(),"No Data!!Try REFRESH setting!!",Toast.LENGTH_LONG).show();// If no data in db, try refresh.todo: fetch movies??
                 }
-                //todo: pass the items to the adapter??
+                else{
+                    mAdapter.swapCursor(cursor);
+                    Log.d(TAG,"cursor swapped");
+                }
+//                if(items.size() > 0){//chk that there r items indeed!!
+//                    Log.d(TAG," sorting by Popularity");
+//
+//                    Collections.sort(items, new Comparator<GalleryItem>() {
+//                        @Override
+//                        public int compare(GalleryItem lhs, GalleryItem rhs) {
+//                            if(rhs.getmPopularity() <  lhs.getmPopularity()) return -1 ;
+//                            if(rhs.getmPopularity() == lhs.getmPopularity()) return 0 ;
+//                            return 1;
+//                        }
+//                    });
+//
+//                    Log.d(TAG,"Done sorting");
+////          todo:          mGridView.setAdapter(new GalleryAdapter(getActivity(), items,0));//todo: do we need new instance??
+//                    Log.d(TAG,"Set Adapter after sorting");
+//
+//                }else{
+//                    Log.d(TAG,"Unable to sort by popularity");
+//                    Toast.makeText(getActivity(),"Unable to process request",Toast.LENGTH_SHORT).show();//maybe throw exception or better way of handling this
+//                }
+//                //todo: pass the items to the adapter??
                 return true;
 
-            case R.id.sort_rating:
-                //todo
-                if(items.size() > 0) {
-                    Log.d(TAG, "sorting by rating");
-                    Collections.sort(items, new Comparator<GalleryItem>() {
-                        @Override
-                        public int compare(GalleryItem lhs, GalleryItem rhs) {
-                            if(rhs.getmRating() < lhs.getmRating()) return -1;
-                            if(rhs.getmRating() < lhs.getmRating()) return 0;
-                            return 1;
-                        }
-                    });
+            case R.id.sort_rating://todo: fetch from db. If data doesnt exist, fetch from internet
+                cursor = getActivity().getContentResolver().query(MoviesContract.Movies.CONTENT_URI,
+                           MOVIES_PROJECTION,
+                            null,
+                            null,
+                            MoviesContract.Movies.COLUMN_RATING + " DESC");
 
-                    Log.d(TAG, "Done sorting by rating");
-//          todo:          mGridView.setAdapter(new GalleryAdapter(getActivity(),items));//todo: do we need new instance
-                    Log.d(TAG,"set adapter after sorting by Rating");
-
-                }else{
-                    Log.d(TAG,"Unable to sort by rating");
-                    Toast.makeText(getActivity(),"Unable to process request",Toast.LENGTH_SHORT).show();
+                if(cursor.getCount() == 0){//if not items in db, fetch from internet.
+                        //todo: for now prompt user to refresh. Next iteration, fetch movies over net;
+                        Toast.makeText(getActivity(),"No Data!!Try REFRESH setting!!",Toast.LENGTH_LONG).show();// If no data in db, try refresh.todo: fetch movies??
+                    }
+                else{
+                        mAdapter.swapCursor(cursor);
+                    Log.d(TAG,"cursor swapped");
                 }
+
+//                //check items, if not check db, if not prompt to refresh OR fetch from internet
+//                if(items == null || items.size() == 0){
+//
+//                    // not items, fetch from db
+//                    cursor = getActivity().getContentResolver().query(MoviesContract.Movies.CONTENT_URI,
+//                            MOVIES_PROJECTION,
+//                            null,
+//                            null,
+//                            MoviesContract.Movies.COLUMN_RATING + " DESC");
+//
+//                    if(cursor.getCount() == 0){//if not items in db, fetch from internet.
+//                        //todo: for now prompt user to refresh. Next iteration, fetch movies over net;
+//                        Toast.makeText(getActivity(),"Try REFRESH setting!!",Toast.LENGTH_LONG).show();
+//                    }
+//                }
+//                else if(items.size() > 0) {
+//                    Log.d(TAG, "sorting by rating");
+//                    Collections.sort(items, new Comparator<GalleryItem>() {
+//                        @Override
+//                        public int compare(GalleryItem lhs, GalleryItem rhs) {
+//                            if (rhs.getmRating() < lhs.getmRating()) return -1;
+//                            if (rhs.getmRating() < lhs.getmRating()) return 0;
+//                            return 1;
+//                        }
+//                    });
+//
+//                    Log.d(TAG, "Done sorting by rating");
+//
+////          todo:          mGridView.setAdapter(new GalleryAdapter(getActivity(),items));//todo: do we need new instance
+//                    Log.d(TAG, "set adapter after sorting by Rating");
+//                }
+
+//                }else{
+//                    Log.d(TAG,"Unable to sort by rating");
+//                    Toast.makeText(getActivity(),"Unable to process request",Toast.LENGTH_SHORT).show();
+//                }
                 return true;
 
             case R.id.favourite:
@@ -297,6 +362,19 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
         mCallbacks = null;
     }
 
+    @Override
+    public void onDestroyView() {
+        Log.d(TAG,"onDestroyView");
+        super.onDestroyView();
+    }
+
+    @Override
+    public void onDestroy() {
+        Log.d(TAG,"onDestroy");
+       // cursor.close();//todo: maybe declare cursor as global variable and close it here.or use try/catch block
+        super.onDestroy();
+    }
+
     private void fetchMoviesJSon() {
         Log.d(TAG,"fetchMoviesJSOn");
         Log.d(TAG,"Launching ImageFetchTask");
@@ -309,9 +387,11 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         Log.d(TAG,"onActivityCreated");
         //check if network available
-        ConnectivityManager cm = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
-        @SuppressWarnings("deprecation")
-                boolean isNetworkAvailable = cm.getBackgroundDataSetting() && (cm.getActiveNetworkInfo() != null);
+        isNetworkAvailable = checkNetwork();
+
+//        ConnectivityManager cm = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+//        @SuppressWarnings("deprecation")
+//                boolean isNetworkAvailable = cm.getBackgroundDataSetting() && (cm.getActiveNetworkInfo() != null);
 
         //if items present, no need to fetch them from internet
         if( isNetworkAvailable && items == null){
@@ -420,8 +500,6 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
 
         Log.d(TAG,"no.of movies loaded" + items.size());
 
-
-
     }
 
     @Override
@@ -429,7 +507,19 @@ public class GalleryFragment extends Fragment implements LoaderManager.LoaderCal
 
         Log.d(TAG,"onLoaderReset");
         mAdapter.swapCursor(null);
+    }
 
+//    public Cursor constructCursor(ArrayList<String> items){
+//
+//        Cursor cursor;
+//
+//    }
+
+    public boolean checkNetwork(){
+        ConnectivityManager cm = (ConnectivityManager) getActivity().getSystemService(Context.CONNECTIVITY_SERVICE);
+        @SuppressWarnings("deprecation")
+        boolean isNetworkAvailable = cm.getBackgroundDataSetting() && (cm.getActiveNetworkInfo() != null);
+        return isNetworkAvailable;
     }
 
     //    private class ImageFetcherTask extends AsyncTask<Void,Void,ArrayList<GalleryItem>> {

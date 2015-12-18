@@ -64,11 +64,22 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_toLeftOf="@id/poster"
-                android:text="Movie Title"
-                android:textSize="28dp"
+                android:text="December 2015"
+                android:textSize="25dp"
                 android:paddingTop="32dp"
                 android:paddingBottom="16dp"
+
                 android:paddingLeft="16dp"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp"
+                android:paddingLeft="16dp"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="8.5/10"
+                android:id="@+id/rating" />
 
             <Button
                 android:layout_width="wrap_content"
@@ -85,19 +96,15 @@
     <!-- DESCRIPTION-->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="100dp">
-        <ScrollView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+        android:layout_height="wrap_content">
 
             <TextView
                 android:id="@+id/detail2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/poster" />
-
-        </ScrollView>
-
+                android:textSize="16dp"
+                android:text="This is where the description is going to populate"/>
+                <!--android:layout_below="@id/poster" />-->
 
     </LinearLayout>
 
@@ -107,12 +114,28 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp"
+        android:text="Reviews"/>
+
     <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/reviewsListView"
         android:layout_weight="0.5">
     </ListView>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceMedium"
+        android:paddingTop="16dp"
+        android:paddingBottom="16dp"
+        android:text="Trailers"/>
 
     <ListView
         android:id="@+id/trailersListView"

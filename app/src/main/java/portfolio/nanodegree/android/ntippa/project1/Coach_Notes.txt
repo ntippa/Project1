@@ -1,0 +1,97 @@
+******************************************************************************************
+build.gradle
+
+@@ -17,6 +17,9 @@ android {
+             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+         }
+     }
++    buildTypes.each {
++        it.buildConfigField 'String', 'OPEN_WEATHER_MAP_API_KEY', MyOpenWeatherMapApiKey
++    }
+ }
+
+ dependencies {
+
+ QUESTION 1: How does this change work?? How do i use it in my application
+ This code came up when doing the cursor loader/cursr adapter code.
+
+ ****************************************************************************************
+ QUESTION 2: should i use shared pref or store to sqlite?? the favourite movie details??
+  advantages dosadvantages . what is a recommeded method.
+
+  Does db allow for offline viewing of the details items??
+  If so, how to store the images?? in db or other alternatives??
+
+  ************************************************************
+  QUESTION 3:
+How do you manage ur day to day work??
+do u maintain log files.
+I seem to be lost, specially if i havent worked for more than a day
+How to keep track of changes?? todo's??
+
+
+******************************************
+QUESTION 4:
+How to handle this case--
+For settings Popularity, higest rated, i have been querying tmDB over internet
+For favourites, i wish to fetch the list from shared pref's and movie details from the db/content provider??
+how to separate this code?? reuse existing code??
+ ***************************************************************
+
+ QUESTION 5:
+
+ what does Intent.setData() do.
+ EX:
+ listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+             @Override
+             public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+                 // CursorAdapter returns a cursor at the correct position for getItem(), or null
+                 // if it cannot seek to that position.
+                 Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
+                 if (cursor != null) {
+                     String locationSetting = Utility.getPreferredLocation(getActivity());
+                     Intent intent = new Intent(getActivity(), DetailActivity.class)
+                             .setData(WeatherContract.WeatherEntry.buildWeatherLocationWithDate(
+                                     locationSetting, cursor.getLong(COL_WEATHER_DATE)
+                             ));
+                     startActivity(intent);
+***********************************************************************************************
+
+Whats best practise to set Time?? Which classes to use??
+Often we have situation where we have to save date/time
+
+The Sunshine app uses Time() classes whereas the developer documentation discourages the use of it
+*****************************************************************************************************
+
+IMPORTANT
+#QUESTION 5:
+ How to solve this:
+ line 161 @GalleryFragment
+    mGridView.setAdapter(new GalleryAdapter(getActivity(), items,0));//todo: do we need new instance??
+    How to load cursor data at this point??
+    For now, I am loading data into Arraylist. How to set this data to adapter??
+
+************************************************************************************************************
+#Question 6:
+Is it good design to store reviews and trailers in db along with Movies details.
+Or should i fetch the reviews and trailers from Internet , when a user clicks for details.
+
+
+What I am doing right now is:
+when user clicks a movie for its details,
+ #I fetch movie reviews and trailers from Internet .
+ #Store the trailers and videos to db
+ # if marked as favourite, I store all the details in Favourites table.
+ I chose to have anpther table for favourites because I beleive its a feature that will be used frequently.
+  A join of 2 tables will be costly operation that access to a single table.
+*******************************************************************************
+#Question 7:
+I plan to store favourites in another table.
+Option 1: Should i store all the movie details in one table. Ex.MovieID, title reviews, trailers URLs etc
+OR
+Option 2:Favourite table store movieID. When requesting for Favourites, I will join the Movies, Movie Deatils table to fetch the results from db
+
+If option 2, Should i store movie details when fetching Movies list. Or should i fetch details when a user clicks a movie for details.
+
+****************************************************************

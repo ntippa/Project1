@@ -1,0 +1,38 @@
+11/16:
+###
+
+Favourites feature:
+
+UX: The User chooses Favourite from settings.
+The Gallery should display posters of movies that were marked as favourites.
+
+code:
+ User clicks favourite: The movie details need to be stored to DB.
+ DetailsFragment
+
+ Once user Clicks a movie from favourites, The details should be retrieed from DB and displayed.
+
+ The GalleryFragment should construct a URI for the movie selected by User.
+ GalleryFragment passes that URI to DetailsFragment as Intent data.
+
+
+adding GalleryAdapter?? Do we need CursorAdapter for the Gallery items??
+bcos we r not storing the images to db
+we can store id's to shared prefs
+retrieve images using picasso.
+IS THIS GOOD FOR THE GalleryAdapter??
+
+11/20: @ImageFecthTask fixed to insert rows to db. Need to test that.
+* todo: move fetching movies to onActivityCreated
+
+11/22@wired in GalleryAdapter.
+Need to add loadercallbacks and Cursor to populate views
+Changed GalleryItem: tyoes for Rating, popularity, Id
+
+###
+DetailsAdapter??
+
+ Storing the movie data to db and check if able to retrieve??
+
+:
+cursor loader

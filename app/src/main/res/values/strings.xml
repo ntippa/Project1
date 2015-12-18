@@ -14,5 +14,6 @@
     <string name="long_lorem_ipsum">"Mauris dapibus convallis massa, vitae ultrices est ultricies ut. Nam porttitor et metus ac bibendum. Nam at justo vitae felis lacinia ultrices laoreet ut arcu. Nam ac purus et turpis convallis mollis. Integer lorem eros, hendrerit imperdiet interdum vitae, sagittis eget ipsum. Donec dignissim tortor at felis fringilla, sed dignissim diam vulputate. Nam sit amet facilisis massa. Suspendisse posuere quam quis augue dapibus venenatis."</string>
     <string name="Favourite">Favourite</string>
     <string name="action_refresh">Refresh</string>
+    <string name = "action_share">Share</string>
 
 </resources>

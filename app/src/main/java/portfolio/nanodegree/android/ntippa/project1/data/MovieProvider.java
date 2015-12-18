@@ -68,7 +68,7 @@ public class MovieProvider extends ContentProvider {
                         null,
                         null,
                         sortOrder,
-                        "100");
+                        "300");//todo: how to set this.what is the higest value this can be set
 
 //                retCursor = mHelper.getReadableDatabase().query(useDistinct,MoviesContract.Movies.TABLE_NAME,
 //                        projection

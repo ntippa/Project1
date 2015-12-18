@@ -56,6 +56,7 @@ public class MoviesFetcher {
         Log.d(TAG, " beginning fetchMovie");
         HttpURLConnection urlConnection = null;
         BufferedReader reader = null;
+        InputStream inputStream = null;
         try{
 
 
@@ -69,7 +70,7 @@ public class MoviesFetcher {
 
 
             // Will contain the raw JSON response as a string.
-            String moviesJsonStr = null;
+            String moviesJsonStr;// = null;
 
             // Create the request to theMovieDB, and open the connection
             urlConnection = (HttpURLConnection) url.openConnection();
@@ -77,11 +78,11 @@ public class MoviesFetcher {
             urlConnection.connect();
 
             // Read the input stream into a String
-            InputStream inputStream = urlConnection.getInputStream();
+            inputStream = urlConnection.getInputStream();
             StringBuffer buffer = new StringBuffer();
             if (inputStream == null) {
                 // Nothing to do.
-                Log.d(TAG,"inutStream is null");
+                Log.d(TAG,"inutStream is null");//todo: what to do if inputstream null
             }
             reader = new BufferedReader(new InputStreamReader(inputStream));
 
@@ -115,8 +116,9 @@ public class MoviesFetcher {
 
             Log.d(TAG,"Items count:" + items.size());
 
-        } catch (IOException e) {
-            Log.d(TAG,"Exception in Placehilder fragment");
+        } catch (Exception e) {
+            Log.d(TAG,"Exception in inputstream,");
+            e.printStackTrace();
             // If the code didn't successfully get th emovie data, there's no point in attemping
             // to parse it.
             //return null;
@@ -130,6 +132,14 @@ public class MoviesFetcher {
                 } catch (final IOException e) {
                     Log.e("PlaceholderFragment", "Error closing stream", e);
                 }
+            }
+            if(inputStream != null){
+                try{
+                    inputStream.close();
+                }catch(final IOException e){
+                    Log.e(TAG," Error closing input stream", e);
+                }
+
             }
         }
 
@@ -300,7 +310,7 @@ public class MoviesFetcher {
             Log.d(TAG,"reviews URL" + url);
 
             // Will contain the raw JSON response as a string.
-            String reviewsJsonStr = null;
+            String reviewsJsonStr;// = null;
 
             // Create the request to theMovieDB, and open the connection
             urlConnection = (HttpURLConnection) url.openConnection();
@@ -349,6 +359,9 @@ public class MoviesFetcher {
 
 
         }catch(Exception e){
+
+            Log.d(TAG,"Exception with reviews inputstream");
+            e.printStackTrace();
 
         }finally {
 

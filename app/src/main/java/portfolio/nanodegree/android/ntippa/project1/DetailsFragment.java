@@ -15,11 +15,15 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.app.NavUtils;
 import android.support.v4.content.Loader;
+import android.support.v4.view.MenuItemCompat;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.ShareActionProvider;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
@@ -60,13 +64,20 @@ public class DetailsFragment extends Fragment {
     public static final String EXTRA_MOVIE_ID = "";//todo: does this need to be empty
     public static final String EXTRA_MOVIE_ITEM = "movie";
 
+    ShareActionProvider mShareActionProvider;
+    private String mShareVideoURL;
+    ArrayList<String> trailer_text = new ArrayList<>();
+    final HashMap<Integer,String> URLMap = new HashMap<>();
+
+    ArrayAdapter<String> mReviewsAdapter, mVideoUrlAdapter;
 
     GalleryItem mItem;
-    TextView mTitle_View, mOverview_View, mDetail_View, mReview_textView, mVideoURLs_textView;
+    TextView mTitle_View, mOverview_View, mDetail_View, mRating;
     ImageView mPoster_View;
     Button favourite_button;
     ImageButton trailer_button;
     ListView mReviewsListView,mVideoUrlListView;
+    Cursor reviews_cursor;
 
     //Reviews as  variable
     //saved to InstanceState to handle config changes
@@ -90,13 +101,16 @@ public class DetailsFragment extends Fragment {
 
 
     public DetailsFragment() {
+        Log.d(TAG,"DetailsFragment default constructor");
        // super();
     }
 
     //instance of fragment with args
     public static DetailsFragment newInstance(GalleryItem item){
+        Log.d(TAG,"newInstance");
         Bundle args = new Bundle();
         args.putParcelable(EXTRA_MOVIE_ITEM,item);
+       // args.putStringArrayList();
 
         DetailsFragment fragment = new DetailsFragment();
         fragment.setArguments(args);
@@ -104,9 +118,82 @@ public class DetailsFragment extends Fragment {
         return fragment;
     }
 
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG,"onCreate");
+        super.onCreate(savedInstanceState);
+
+        if(savedInstanceState != null){
+            Log.d(TAG,"Obtaining from savedInstanceState");
+            mItem = savedInstanceState.getParcelable("MOVIE_ITEM");
+            Log.d(TAG,"Movie item from savedInstanceState");
+            mReviews = savedInstanceState.getStringArrayList("REVIEWS");
+            Log.d(TAG,"Reviews from savedInstanceState");
+            mVideoURLs = savedInstanceState.getStringArrayList("VideoURLS");
+            Log.d(TAG,"VideoURLs from savedInstanceState");
+        }
+
+        // mItem = getActivity().getIntent().getParcelableExtra(EXTRA_MOVIE_ITEM);
+        mItem = (GalleryItem)getArguments().getParcelable(EXTRA_MOVIE_ITEM);
+
+        if(mItem != null){
+            Log.d(TAG," Fetching reviews for movie" + mItem.getmTitle() + " ID::" + mItem.getId());
+        }else{
+            Log.d(TAG,"Movie details not received as arguemnt ");
+        }
+
+
+        //check db for reviews, if not found, then fetch them from internet
+        reviews_cursor = getActivity().getContentResolver().query(
+                MoviesContract.MovieDetails.CONTENT_URI,
+                REVIEWS_PROJECTION,
+                MoviesContract.MovieDetails.COLUMN_MOVIE_KEY + "= ?",
+                new String[]{Integer.toString(mItem.getId())},//todo:
+                null
+        );
+
+        //if reviews for movie exist in db, iterate thru the db cursor and populate the reviews
+        if(reviews_cursor.getCount() > 0){
+            Log.d(TAG," Reviews exist for this movie in db:::" + reviews_cursor.getCount());
+
+            mReviews = new ArrayList<>(reviews_cursor.getCount());
+
+
+            reviews_cursor.moveToFirst();
+
+            //reading reviews from cursor
+            while(!reviews_cursor.isAfterLast()){
+
+                mReviews.add(reviews_cursor.getString(COL_MOVIE_REVIEWS));
+                reviews_cursor.moveToNext();
+                Log.d(TAG,"Review added");
+            }
+
+            mReviewsAdapter = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_list_item_1,mReviews);
+            //mReviewsListView.setAdapter(reviewsAdapter);
+
+        }else{
+            Log.d(TAG," No reviews exist for this movie");
+            Log.d(TAG," Fetching reviews from Internet");
+            new ReviewsFetcher().execute(mItem.getId());//todo: try/catch??
+        }
+
+
+        Log.d(TAG, "Initiating video URL fetching");
+        new VideoURLFetcher().execute(mItem.getId());//todo: should i save URLs also to the db and retrieve from db like reviews
+
+        setHasOptionsMenu(true);
+        setRetainInstance(true);
+
+        //  reviews_cursor.close();//
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.d(TAG,"onCreateView");
+        mReviews = new ArrayList<>();
+
         View view = inflater.inflate(R.layout.details_fragment,container,false);
 
         Toolbar actionBar = (Toolbar) view.findViewById(R.id.appBar);
@@ -114,6 +201,7 @@ public class DetailsFragment extends Fragment {
 
         ((AppCompatActivity)getActivity()).setSupportActionBar(actionBar);
 
+        assert ((AppCompatActivity) getActivity()).getSupportActionBar() != null;
 
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB){
             if(NavUtils.getParentActivityName(getActivity()) != null){
@@ -166,7 +254,10 @@ public class DetailsFragment extends Fragment {
             e.printStackTrace();
         }
 
-       // mDetail_View.setText(s[0]);
+        String rating = mItem.getmRating() + " / 10 ";
+        Log.d(TAG,"Rating::" + rating);
+      mRating = (TextView) view.findViewById(R.id.rating);
+        mRating.setText(rating);
 
         mOverview_View = (TextView) view.findViewById(R.id.detail2);
         mOverview_View.setText(mItem.getmDescription());
@@ -174,9 +265,18 @@ public class DetailsFragment extends Fragment {
         //mReview_textView = (TextView)view.findViewById(R.id.reviews);
 
         mReviewsListView = (ListView) view.findViewById(R.id.reviewsListView);
+        //ArrayAdapter<String> reviewsAdapter = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_list_item_1,mReviews);
+        mReviewsListView.setAdapter(mReviewsAdapter);
+
 
        // mVideoURLs_textView = (TextView) view.findViewById(R.id.trailersText);
         mVideoUrlListView = (ListView) view.findViewById(R.id.trailersListView);
+
+       // ArrayAdapter<String> videoURLAdapter = new ArrayAdapter<String>(getActivity(),R.layout.list_view_item,R.id.trailer,trailer_text);
+        mVideoUrlAdapter = new ArrayAdapter<String>(getActivity(),R.layout.list_view_item,R.id.trailer,trailer_text);
+        Log.d(TAG," constructed videoAdapter");
+        mVideoUrlListView.setAdapter(mVideoUrlAdapter);
+        Log.d(TAG,"VideoUrlListView adapter set");
 
 
         favourite_button = (Button) view.findViewById(R.id.favourite_button);// movie_id stored to shared preferences.
@@ -184,26 +284,66 @@ public class DetailsFragment extends Fragment {
 
             @Override
             public void onClick(View v) {
-                addToFavourite(getActivity(),mItem);
+
+                String favourites = Utility.getFavouritePreference(getActivity());
+                Log.d(TAG, "Favourites from Shared Prefs::" + favourites);
+                String selected_as_fav = String.valueOf(mItem.getId());
+
+
+                if (favourites.contains(selected_as_fav)) {
+                    Toast.makeText(getActivity(), "Its already Ur Favourite!!", Toast.LENGTH_SHORT).show();
+                } else {
+
+                    Toast.makeText(getActivity(), "Saving to Ur Favourites!!", Toast.LENGTH_SHORT).show();
+                    addToFavourite(getActivity(), mItem);
+                }
             }
         });
 
         return view;
     }
 
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        Log.d(TAG,"onActivityCreated");
+        super.onActivityCreated(savedInstanceState);
+
+//        if(savedInstanceState != null){
+//            Log.d(TAG,"Obtaining from savedInstanceState");
+//            mItem = savedInstanceState.getParcelable("MOVIE_ITEM");
+//            Log.d(TAG,"Movie item from savedInstanceState");
+//            mReviews = savedInstanceState.getStringArrayList("REVIEWS");
+//            Log.d(TAG,"Reviews from savedInstanceState");
+//            mVideoURLs = savedInstanceState.getStringArrayList("VideoURLS");
+//            Log.d(TAG,"VideoURLs from savedInstanceState");
+//        }
+    }
+
+    //creates intent with videoURL and shared as Action bar item
+    private Intent createShareIntent(String videoURL_to_share){
+        Log.d(TAG,"createShareIntent");
+        Intent shareIntent = new Intent(Intent.ACTION_SEND);
+        shareIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
+        shareIntent.setType("text/plain");
+        shareIntent.putExtra(Intent.EXTRA_TEXT,videoURL_to_share);
+        return shareIntent;
+
+    }
+
+
     //store the info to db
     //stored the movie id to shared  preferences
     //todo: how about to db??
     private void addToFavourite(Context context,GalleryItem item) {
         //step 1: check if this is already a favourite
-        String favourites = Utility.getFavouritePreference(context);
-        Log.d(TAG,"Favourites from Shared Prefs::" + favourites);
-        String selected_as_fav = String.valueOf(item.getId());
-
-
-        if(favourites.contains(selected_as_fav)){
-            Toast.makeText(context,"Its already Ur Favourite!!",Toast.LENGTH_SHORT).show();
-        }else{
+//        String favourites = Utility.getFavouritePreference(context);
+//        Log.d(TAG,"Favourites from Shared Prefs::" + favourites);
+//        String selected_as_fav = String.valueOf(item.getId());
+//
+//
+//        if(favourites.contains(selected_as_fav)){
+//            Toast.makeText(context,"Its already Ur Favourite!!",Toast.LENGTH_SHORT).show();
+//        }else{
             //step2:
             Log.d(TAG," Setting favourite value to true ");
             ContentValues updateValues = new ContentValues();
@@ -253,71 +393,30 @@ public class DetailsFragment extends Fragment {
 
             }
 
-        }
-
     }
 
+
+
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        Log.d(TAG,"onCreateOptionsMenu");
 
-        if(savedInstanceState != null){
-            Log.d(TAG,"Obtaining from savedInstanceState");
-            mItem = savedInstanceState.getParcelable("MOVIE_ITEM");
-            Log.d(TAG,"Movie item from savedInstanceState");
-            mReviews = savedInstanceState.getStringArrayList("REVIEWS");
-            Log.d(TAG,"Reviews from savedInstanceState");
-            mVideoURLs = savedInstanceState.getStringArrayList("VideoURLS");
-            Log.d(TAG,"VideoURLs from savedInstanceState");
-        }
+        inflater.inflate(R.menu.menu_detail,menu);
 
-       // mItem = getActivity().getIntent().getParcelableExtra(EXTRA_MOVIE_ITEM);
-        mItem = (GalleryItem)getArguments().getParcelable(EXTRA_MOVIE_ITEM);
+        MenuItem menuItem = menu.findItem(R.id.action_share);
+        mShareActionProvider = (ShareActionProvider) MenuItemCompat.getActionProvider(menuItem);
 
-        Log.d(TAG," Fetching reviews for movie" + mItem.getmTitle() + " ID::" + mItem.getId());
-
-        //check db for reviews, if not found, then fetch them from internet
-        Cursor reviews_cursor = getActivity().getContentResolver().query(
-                MoviesContract.MovieDetails.CONTENT_URI,
-                REVIEWS_PROJECTION,
-                MoviesContract.MovieDetails.COLUMN_MOVIE_KEY + "= ?",
-                new String[]{Integer.toString(mItem.getId())},//todo:
-                null
-        );
-
-        //if reviews for movie exist in db, iterate thru the db cursor and populate the reviews
-        if(reviews_cursor.getCount() > 0){
-            Log.d(TAG," Reviews exist for this movie in db:::" + reviews_cursor.getCount());
-
-
-            reviews_cursor.moveToFirst();
-
-            //reading reviews from cursor
-            while(!reviews_cursor.isAfterLast()){
-
-                mReviews.add(reviews_cursor.getString(COL_MOVIE_REVIEWS));
-                reviews_cursor.moveToNext();
-                Log.d(TAG,"Review added");
-            }
-
+        if(mShareActionProvider != null ){// check if videoURL exists at this time.todo: can we set this shareIntent at any other POE??
+            mShareActionProvider.setShareIntent(createShareIntent(mShareVideoURL));
+            Log.d(TAG,"shareIntent created");
         }else{
-            Log.d(TAG," No reviews exist for this movie");
-            Log.d(TAG," Fetching reviews from Internet");
-            new ReviewsFetcher().execute(mItem.getId());
+            Log.d(TAG,"Share Action provider is null");
         }
-
-
-        Log.d(TAG,"Initiating video URL fetching");
-        new VideoURLFetcher().execute(mItem.getId());//todo: should i save URLs also to the db and retrieve from db like reviews
-
-        setHasOptionsMenu(true);
-        setRetainInstance(true);
-
-        reviews_cursor.close();//
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        Log.d(TAG,"onOptionsItemSelected");
 
         switch(item.getItemId()){
             case android.R.id.home:
@@ -335,12 +434,15 @@ public class DetailsFragment extends Fragment {
     //free resources like bitmaps, cursors s
     @Override
     public void onDestroyView() {
+        Log.d(TAG,"onDestroyView");
         super.onDestroyView();
     }
 
     @Override
     public void onStop() {
         Log.d(TAG,"OnStop");
+        Log.d(TAG,"Closing cursors here");
+        reviews_cursor.close();
         super.onStop();
     }
 
@@ -356,6 +458,7 @@ public class DetailsFragment extends Fragment {
         outState.putParcelable("MOVIE_ITEM", mItem);
         outState.putStringArrayList("REVIEWS", mReviews);
         outState.putStringArrayList("VideoURLS",mVideoURLs);
+        outState.putStringArrayList("TrailerText",trailer_text);
         Log.d(TAG,"reviews and videoURLs saved to instance state");
         super.onSaveInstanceState(outState);
     }
@@ -376,18 +479,18 @@ public class DetailsFragment extends Fragment {
     protected void onPostExecute(ArrayList<String> reviews) {
 
         if(reviews != null && reviews.size() > 0) {
-
             mReviews = reviews;
-            ArrayAdapter<String> reviewsAdapter = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_list_item_1,mReviews);
-            mReviewsListView.setAdapter(reviewsAdapter);
-
             Log.d(TAG,"REVIEWS received:");
 
         }else {
+            mReviews = new ArrayList<String>();
+            mReviews.add("No Reviews available");
             Toast.makeText(getActivity(),"Oops!!No reviews here!!",Toast.LENGTH_SHORT).show();
             Log.d(TAG,"Reviews not available");
 
         }
+            mReviewsAdapter = new ArrayAdapter<String>(getActivity(),android.R.layout.simple_list_item_1,mReviews);
+            mReviewsListView.setAdapter(mReviewsAdapter);
 
     }
 
@@ -413,11 +516,21 @@ public class DetailsFragment extends Fragment {
         protected void onPostExecute(ArrayList<String> videoURLs) {
             Log.d(TAG,"No.Of Video URLs" + mVideoURLs.size());
 
-            ArrayList<String> trailer_text = new ArrayList<>(mVideoURLs.size());
+//            ArrayList<String> trailer_text = new ArrayList<>(mVideoURLs.size());
             //final HashMap<String,String> URLMap = new HashMap<>(mVideoURLs.size());
             final HashMap<Integer,String> URLMap = new HashMap<>(mVideoURLs.size());
 
             if(mVideoURLs != null && mVideoURLs.size() > 0){
+
+
+                mShareVideoURL = mVideoURLs.get(0);//share first Video URL
+                if(mShareActionProvider != null){// check if videoURL exists at this time.todo: can we set this shareIntent at any other POE??
+                    mShareActionProvider.setShareIntent(createShareIntent(mShareVideoURL));
+                    Log.d(TAG,"shareIntent created");
+                }else{
+                    Log.d(TAG,"Share Action provider is null");
+                }
+
 
                 //Effort to display URLS
                 int i = 0;
@@ -429,9 +542,13 @@ public class DetailsFragment extends Fragment {
 
                     i++;
                 }
-                ArrayAdapter<String> videoURLAdapter = new ArrayAdapter<String>(getActivity(),R.layout.list_view_item,R.id.trailer,trailer_text);
+//                ArrayAdapter<String> videoURLAdapter = new ArrayAdapter<String>(getActivity(),R.layout.list_view_item,R.id.trailer,trailer_text);
+//                Log.d(TAG," constructed videoAdapter");
+//                mVideoUrlListView.setAdapter(videoURLAdapter);
+//                Log.d(TAG,"VideoUrlListView adapter set");
+                mVideoUrlAdapter = new ArrayAdapter<String>(getActivity(),R.layout.list_view_item,R.id.trailer,trailer_text);
                 Log.d(TAG," constructed videoAdapter");
-                mVideoUrlListView.setAdapter(videoURLAdapter);
+                mVideoUrlListView.setAdapter(mVideoUrlAdapter);
                 Log.d(TAG,"VideoUrlListView adapter set");
 
                 mVideoUrlListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
